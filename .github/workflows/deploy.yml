@@ -1,0 +1,54 @@
+name: Deploy to Local Machine
+
+on:
+  push:
+    branches:
+      - dev # ระบุ branch ที่ต้องการตรวจสอบ เช่น main หรือ dev
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      # Clone Repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # ตรวจสอบโฟลเดอร์
+      - name: Check and Create Folder
+        run: |
+          $deployPath = "D:\AdaSoft\DeployProject\Workshop-Line-Api"
+          if (-not (Test-Path $deployPath)) {
+              Write-Host "Creating directory: $deployPath"
+              New-Item -ItemType Directory -Force -Path $deployPath
+          } else {
+              Write-Host "Directory exists: $deployPath"
+          }
+
+      # อ่านไฟล์ deploy_version และตั้งชื่อโฟลเดอร์
+      - name: Read deploy_version and Create Subfolder
+        run: |
+          $deployFile = "deploy_version"
+          $deployPath = "D:\AdaSoft\DeployProject\Workshop-Line-Api"
+          $deployVersion = Get-Content $deployFile | ForEach-Object { $_.Trim() }
+          $folderName = $deployVersion -replace "Version ", "AdaStoreBack-"
+          $finalPath = Join-Path $deployPath $folderName
+
+          if (-not (Test-Path $finalPath)) {
+              Write-Host "Creating directory: $finalPath"
+              New-Item -ItemType Directory -Force -Path $finalPath
+          } else {
+              Write-Host "Directory exists: $finalPath"
+          }
+
+      # เขียน Commit Message ลงใน README.md
+      - name: Write Commit Message to README
+        run: |
+          $commitMessage = "${{ github.event.head_commit.message }}"
+          $readmePath = Join-Path $finalPath "README.md"
+          Set-Content -Path $readmePath -Value $commitMessage
+
+      # Copy Files to Target Directory
+      - name: Copy Files to Target Directory
+        run: |
+          Copy-Item -Path * -Destination $finalPath -Recurse -Force
