@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL = "https://api.ai21.com/studio/v1/j2-ultra/complete";
-const API_KEY = "GpZiQavzsKjKqWYliueIDPm0qs068plL";
+const API_KEY = "";
 
 export const callAI21 = async (message: string): Promise<string> => {
     try {
